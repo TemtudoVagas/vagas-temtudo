@@ -1,0 +1,758 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cadastro de candidato</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#12312F;
+  --ink-soft:#4A6462;
+  --paper:#FBFAF7;
+  --line:#DCD9D1;
+  --field:#FFFFFF;
+  --accent:#B7791F;
+  --accent-soft:#F3E7CE;
+  --erro:#A03225;
+  --ok:#1F6B47;
+  --r:10px;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0;background:var(--paper);color:var(--ink);
+  font-family:'Archivo',system-ui,-apple-system,sans-serif;
+  font-size:16px;line-height:1.55;
+}
+.wrap{max-width:640px;margin:0 auto;padding:0 20px 72px}
+
+/* ---------- topo ---------- */
+header{background:var(--ink);color:#F2EFE8;padding:40px 0 34px;margin-bottom:34px}
+header .wrap{padding-bottom:0}
+.marca{font-size:.82rem;letter-spacing:.14em;color:#8FB0AC;margin:0 0 22px}
+h1{font-size:2rem;line-height:1.12;font-weight:800;letter-spacing:-.022em;margin:0 0 14px;max-width:15ch}
+header p{margin:0 0 8px;color:#CBD9D6;max-width:60ch}
+.tempo{display:inline-block;margin-top:14px;background:rgba(255,255,255,.08);
+  border:1px solid rgba(255,255,255,.16);border-radius:999px;padding:6px 14px;font-size:.9rem;color:#EDE7DA}
+
+/* ---------- progresso ---------- */
+.barra{position:sticky;top:0;z-index:20;background:var(--paper);
+  border-bottom:1px solid var(--line);padding:10px 0}
+.barra .wrap{padding-bottom:0;display:flex;align-items:center;gap:12px}
+.trilho{flex:1;height:5px;background:var(--line);border-radius:999px;overflow:hidden}
+.preenchido{height:100%;width:0;background:var(--ink);transition:width .25s ease}
+.pct{font-size:.85rem;color:var(--ink-soft);font-variant-numeric:tabular-nums;min-width:8ch;text-align:right}
+
+/* ---------- seções ---------- */
+section{margin:0 0 40px;padding:0 0 4px}
+.cab{display:flex;gap:14px;align-items:baseline;border-bottom:2px solid var(--ink);padding-bottom:10px;margin-bottom:22px}
+.num{font-size:.95rem;font-weight:800;color:var(--accent);font-variant-numeric:tabular-nums}
+h2{font-size:1.22rem;font-weight:700;letter-spacing:-.01em;margin:0}
+.ajuda{margin:-12px 0 22px;color:var(--ink-soft);font-size:.94rem;max-width:58ch}
+
+/* ---------- campos ---------- */
+.linha{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.linha.tres{grid-template-columns:1fr 1fr 1fr}
+@media(max-width:540px){.linha,.linha.tres{grid-template-columns:1fr}}
+.campo{margin-bottom:14px}
+label{display:block;font-size:.9rem;font-weight:500;margin-bottom:6px}
+.opc{color:var(--ink-soft);font-weight:400}
+input,select,textarea{
+  width:100%;background:var(--field);border:1px solid var(--line);border-radius:var(--r);
+  padding:12px 13px;font:inherit;font-size:1rem;color:var(--ink);
+}
+textarea{min-height:88px;resize:vertical}
+input:focus,select:focus,textarea:focus{outline:2px solid var(--ink);outline-offset:1px;border-color:var(--ink)}
+input[aria-invalid="true"]{border-color:var(--erro);background:#FEF7F6}
+.erro{display:none;color:var(--erro);font-size:.85rem;margin-top:5px}
+.erro.ver{display:block}
+.dica{color:var(--ink-soft);font-size:.85rem;margin-top:5px}
+
+/* ---------- caixinhas ---------- */
+.check{display:flex;gap:11px;align-items:flex-start;background:var(--field);
+  border:1px solid var(--line);border-radius:var(--r);padding:13px;margin-bottom:14px;cursor:pointer}
+.check input{width:20px;height:20px;flex:0 0 auto;margin-top:2px;accent-color:var(--ink)}
+.check span{font-size:.94rem;line-height:1.5}
+
+/* ---------- emprego ---------- */
+.emprego{border:1px solid var(--line);border-left:4px solid var(--accent);
+  border-radius:var(--r);background:var(--field);padding:18px;margin-bottom:18px}
+.emprego h3{margin:0 0 4px;font-size:1rem;font-weight:700}
+.emprego .sub{margin:0 0 16px;color:var(--ink-soft);font-size:.88rem}
+.emprego .check{background:var(--accent-soft);border-color:#E4D3AC;margin-bottom:0}
+
+/* ---------- rede social ---------- */
+.arroba{display:flex;align-items:stretch}
+.arroba .sig{display:flex;align-items:center;padding:0 12px;background:#F1EFE9;
+  border:1px solid var(--line);border-right:0;border-radius:var(--r) 0 0 var(--r);color:var(--ink-soft)}
+.arroba input{border-radius:0 var(--r) var(--r) 0}
+
+/* ---------- perguntas (placeholder) ---------- */
+.aguardando{border:1px dashed var(--line);border-radius:var(--r);padding:20px;color:var(--ink-soft);background:#F5F3ED}
+
+/* ---------- envio ---------- */
+.envio{background:var(--ink);color:#F2EFE8;border-radius:14px;padding:24px}
+.envio h2{color:#fff;margin-bottom:10px}
+.envio p{color:#CBD9D6;font-size:.94rem;margin:0 0 18px}
+.envio .check{background:rgba(255,255,255,.07);border-color:rgba(255,255,255,.18);color:#EDE7DA}
+button{
+  width:100%;background:var(--accent);color:#231604;border:0;border-radius:var(--r);
+  padding:16px;font:inherit;font-size:1.02rem;font-weight:700;cursor:pointer;margin-top:6px
+}
+button:hover{background:#C98A28}
+button:focus-visible{outline:2px solid #fff;outline-offset:2px}
+button.secundario{background:transparent;color:#EDE7DA;border:1px solid rgba(255,255,255,.35);font-weight:500}
+button.secundario:hover{background:rgba(255,255,255,.08)}
+.aviso{display:none;margin-top:14px;padding:12px;border-radius:var(--r);
+  background:#FDEEEC;color:var(--erro);font-size:.9rem}
+.aviso.ver{display:block}
+
+/* ---------- fim ---------- */
+.fim{display:none;text-align:center;padding:48px 0}
+.fim.ver{display:block}
+.fim .selo{width:56px;height:56px;border-radius:50%;background:var(--ok);color:#fff;
+  display:flex;align-items:center;justify-content:center;font-size:1.7rem;margin:0 auto 20px}
+.fim h2{font-size:1.5rem;margin-bottom:12px}
+.fim p{color:var(--ink-soft);max-width:46ch;margin:0 auto 10px}
+
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <p class="marca">Processo seletivo</p>
+    <h1>Cadastro para a primeira etapa</h1>
+    <p>Preencha com calma e capriche nos telefones — é por eles que a gente vai te chamar. Depois de enviar, se o seu perfil combinar com a vaga, você recebe o convite para a entrevista presencial.</p>
+    <span class="tempo">Leva uns 8 minutos</span>
+  </div>
+</header>
+
+<div class="barra">
+  <div class="wrap">
+    <div class="trilho"><div class="preenchido" id="preenchido"></div></div>
+    <span class="pct" id="pct">0% pronto</span>
+  </div>
+</div>
+
+<main class="wrap" id="formulario">
+
+  <section>
+    <div class="cab"><span class="num">1</span><h2>Quem é você</h2></div>
+
+    <div class="campo">
+      <label for="nome">Nome completo</label>
+      <input id="nome" name="nome" autocomplete="name">
+      <p class="erro" data-erro="nome">Escreva seu nome completo, como está no documento.</p>
+    </div>
+
+    <div class="campo">
+      <label for="nomeSocial">Nome social <span class="opc">— se você usa um nome diferente do documento</span></label>
+      <input id="nomeSocial" name="nomeSocial">
+    </div>
+
+    <div class="linha">
+      <div class="campo">
+        <label for="nascimento">Data de nascimento</label>
+        <input id="nascimento" name="nascimento" type="date">
+        <p class="erro" data-erro="nascimento">Informe sua data de nascimento.</p>
+      </div>
+      <div class="campo">
+        <label for="celular">Celular com WhatsApp</label>
+        <input id="celular" name="celular" inputmode="tel" placeholder="(24) 99999-9999" autocomplete="tel">
+        <p class="erro" data-erro="celular">Digite o número com DDD.</p>
+      </div>
+
+    <div class="campo">
+      <label for="genero">Gênero</label>
+      <select id="genero" name="genero">
+        <option value="">Selecione</option>
+        <option>Masculino</option>
+        <option>Feminino</option>
+        <option>Prefiro não informar</option>
+      </select>
+      <p class="erro" data-erro="genero">Selecione uma opção.</p>
+    </div>
+
+    <div class="linha">
+      <div class="campo">
+        <label for="recado">Telefone de recado <span class="opc">— opcional</span></label>
+        <input id="recado" name="recado" inputmode="tel" placeholder="(24) 3333-3333">
+      </div>
+      <div class="campo">
+        <label for="email">E-mail</label>
+        <input id="email" name="email" type="email" inputmode="email" autocomplete="email">
+        <p class="erro" data-erro="email">Confira o e-mail — parece que falta algo.</p>
+      </div>
+    </div>
+
+    <div class="campo">
+      <label for="escolaridade">Escolaridade</label>
+      <select id="escolaridade" name="escolaridade">
+        <option value="">Selecione</option>
+        <option>Fundamental incompleto</option>
+        <option>Fundamental completo</option>
+        <option>Médio incompleto</option>
+        <option>Médio completo</option>
+        <option>Técnico</option>
+        <option>Superior incompleto</option>
+        <option>Superior completo</option>
+      </select>
+      <p class="erro" data-erro="escolaridade">Escolha uma opção.</p>
+    </div>
+
+    <div class="campo">
+      <label for="curso">Curso ou formação <span class="opc">— opcional</span></label>
+      <input id="curso" name="curso" placeholder="Ex.: Técnico em Logística">
+    </div>
+
+    <div class="campo">
+      <label for="cargo">Cargo pretendido</label>
+      <select id="cargo" name="cargo">
+        <option value="">Selecione</option>
+        <option>Operador de Loja (repositor / vendedor)</option>
+        <option>Caixa</option>
+        <option>Estoquista</option>
+      </select>
+      <p class="erro" data-erro="cargo">Escolha o cargo para o qual está se candidatando.</p>
+    </div>
+  </section>
+
+  <section>
+    <div class="cab"><span class="num">2</span><h2>Documentos</h2></div>
+    <div class="campo">
+      <label for="cpf">CPF</label>
+      <input id="cpf" name="cpf" inputmode="numeric" placeholder="000.000.000-00" maxlength="14">
+      <p class="erro" data-erro="cpf">Esse CPF não confere. Revise os números.</p>
+    </div>
+
+    <div class="campo">
+      <label for="rg">RG</label>
+      <input id="rg" name="rg">
+      <p class="erro" data-erro="rg">Informe o número do RG.</p>
+    </div>
+
+    <div class="campo">
+      <label for="reservista">Certificado de reservista</label>
+      <input id="reservista" name="reservista">
+      <p class="erro" data-erro="reservista">Informe o número do certificado de reservista.</p>
+    </div>
+  </section>
+
+  <section>
+    <div class="cab"><span class="num">3</span><h2>Onde você mora</h2></div>
+    <div class="linha">
+      <div class="campo">
+        <label for="cep">CEP</label>
+        <input id="cep" name="cep" inputmode="numeric" placeholder="25600-000" maxlength="9">
+        <p class="dica" id="cepStatus"></p>
+        <p class="erro" data-erro="cep">Informe o CEP.</p>
+      </div>
+      <div class="campo">
+        <label for="numero">Número</label>
+        <input id="numero" name="numero">
+        <p class="erro" data-erro="numero">Falta o número.</p>
+      </div>
+    </div>
+
+    <div class="campo">
+      <label for="rua">Rua</label>
+      <input id="rua" name="rua" autocomplete="address-line1">
+      <p class="erro" data-erro="rua">Informe a rua.</p>
+    </div>
+
+    <div class="linha">
+      <div class="campo">
+        <label for="complemento">Complemento <span class="opc">— opcional</span></label>
+        <input id="complemento" name="complemento" placeholder="Apto, fundos, casa 2">
+      </div>
+      <div class="campo">
+        <label for="bairro">Bairro</label>
+        <input id="bairro" name="bairro">
+        <p class="erro" data-erro="bairro">Informe o bairro.</p>
+      </div>
+    </div>
+
+    <div class="linha">
+      <div class="campo">
+        <label for="cidade">Cidade</label>
+        <input id="cidade" name="cidade">
+        <p class="erro" data-erro="cidade">Informe a cidade.</p>
+      </div>
+      <div class="campo">
+        <label for="uf">Estado</label>
+        <input id="uf" name="uf" maxlength="2" placeholder="RJ">
+        <p class="erro" data-erro="uf">Informe o estado.</p>
+      </div>
+    </div>
+
+
+  </section>
+
+  <section>
+    <div class="cab"><span class="num">4</span><h2>Redes sociais</h2></div>
+    <p class="ajuda">É opcional. Se quiser, deixe só o perfil que você usa de verdade.</p>
+
+    <div class="campo">
+      <label for="instagram">Instagram</label>
+      <div class="arroba"><span class="sig">@</span><input id="instagram" name="instagram" placeholder="seu.perfil"></div>
+    </div>
+
+    <div class="campo">
+      <label for="tiktok">TikTok</label>
+      <div class="arroba"><span class="sig">@</span><input id="tiktok" name="tiktok" placeholder="seu.perfil"></div>
+    </div>
+
+    <div class="campo">
+      <label for="linkedin">LinkedIn <span class="opc">— link do perfil</span></label>
+      <input id="linkedin" name="linkedin" placeholder="linkedin.com/in/...">
+    </div>
+
+    <div class="campo">
+      <label for="facebook">Facebook</label>
+      <div class="arroba"><span class="sig">@</span><input id="facebook" name="facebook" placeholder="seu.perfil"></div>
+    </div>
+  </section>
+
+  <section>
+    <div class="cab"><span class="num">5</span><h2>Seus três últimos empregos</h2></div>
+    <p class="ajuda">Comece pelo mais recente. Se você teve menos de três, deixe os outros em branco. O telefone da empresa é importante: é por ele que confirmamos sua experiência.</p>
+
+    <div class="emprego">
+      <h3>Emprego mais recente</h3>
+      <p class="sub">O atual, ou o último em que você trabalhou.</p>
+      <div class="campo"><label for="e1emp">Empresa</label><input id="e1emp" name="e1emp"></div>
+      <div class="linha">
+        <div class="campo"><label for="e1cargo">Sua função</label><input id="e1cargo" name="e1cargo"></div>
+        <div class="campo"><label for="e1tel">Telefone da empresa</label><input id="e1tel" name="e1tel" inputmode="tel" placeholder="(24) 3333-3333"></div>
+      </div>
+      <div class="linha">
+        <div class="campo"><label for="e1ini">Entrada</label><input id="e1ini" name="e1ini" type="month"></div>
+        <div class="campo"><label for="e1fim">Saída <span class="opc">— em branco se ainda trabalha</span></label><input id="e1fim" name="e1fim" type="month"></div>
+      </div>
+      <div class="linha">
+        <div class="campo"><label for="e1chefe">Quem era seu supervisor</label><input id="e1chefe" name="e1chefe"></div>
+        <div class="campo"><label for="e1salario">Último salário <span class="opc">— opcional</span></label><input id="e1salario" name="e1salario" inputmode="numeric" placeholder="R$"></div>
+      </div>
+      <div class="campo"><label for="e1motivo">Por que você saiu</label><input id="e1motivo" name="e1motivo"></div>
+      <label class="check">
+        <input type="checkbox" id="e1ok" name="e1ok">
+        <span>Autorizo vocês a ligarem nesta empresa para confirmar minha experiência</span>
+      </label>
+    </div>
+
+    <div class="emprego">
+      <h3>Emprego anterior</h3>
+      <p class="sub">O de antes desse.</p>
+      <div class="campo"><label for="e2emp">Empresa</label><input id="e2emp" name="e2emp"></div>
+      <div class="linha">
+        <div class="campo"><label for="e2cargo">Sua função</label><input id="e2cargo" name="e2cargo"></div>
+        <div class="campo"><label for="e2tel">Telefone da empresa</label><input id="e2tel" name="e2tel" inputmode="tel"></div>
+      </div>
+      <div class="linha">
+        <div class="campo"><label for="e2ini">Entrada</label><input id="e2ini" name="e2ini" type="month"></div>
+        <div class="campo"><label for="e2fim">Saída</label><input id="e2fim" name="e2fim" type="month"></div>
+      </div>
+      <div class="linha">
+        <div class="campo"><label for="e2chefe">Quem era seu supervisor</label><input id="e2chefe" name="e2chefe"></div>
+        <div class="campo"><label for="e2salario">Último salário <span class="opc">— opcional</span></label><input id="e2salario" name="e2salario" inputmode="numeric" placeholder="R$"></div>
+      </div>
+      <div class="campo"><label for="e2motivo">Por que você saiu</label><input id="e2motivo" name="e2motivo"></div>
+      <label class="check">
+        <input type="checkbox" id="e2ok" name="e2ok">
+        <span>Autorizo vocês a ligarem nesta empresa para confirmar minha experiência</span>
+      </label>
+    </div>
+
+    <div class="emprego">
+      <h3>Terceiro emprego</h3>
+      <p class="sub">Se você tiver um terceiro para contar.</p>
+      <div class="campo"><label for="e3emp">Empresa</label><input id="e3emp" name="e3emp"></div>
+      <div class="linha">
+        <div class="campo"><label for="e3cargo">Sua função</label><input id="e3cargo" name="e3cargo"></div>
+        <div class="campo"><label for="e3tel">Telefone da empresa</label><input id="e3tel" name="e3tel" inputmode="tel"></div>
+      </div>
+      <div class="linha">
+        <div class="campo"><label for="e3ini">Entrada</label><input id="e3ini" name="e3ini" type="month"></div>
+        <div class="campo"><label for="e3fim">Saída</label><input id="e3fim" name="e3fim" type="month"></div>
+      </div>
+      <div class="linha">
+        <div class="campo"><label for="e3chefe">Quem era seu supervisor</label><input id="e3chefe" name="e3chefe"></div>
+        <div class="campo"><label for="e3salario">Último salário <span class="opc">— opcional</span></label><input id="e3salario" name="e3salario" inputmode="numeric" placeholder="R$"></div>
+      </div>
+      <div class="campo"><label for="e3motivo">Por que você saiu</label><input id="e3motivo" name="e3motivo"></div>
+      <label class="check">
+        <input type="checkbox" id="e3ok" name="e3ok">
+        <span>Autorizo vocês a ligarem nesta empresa para confirmar minha experiência</span>
+      </label>
+    </div>
+
+    <div class="campo">
+      <label for="primeiro">Nunca trabalhou registrado? Conte o que você já fez <span class="opc">— opcional</span></label>
+      <textarea id="primeiro" name="primeiro" placeholder="Ajudei na loja da família, trabalhei em feira, fiz bicos de..."></textarea>
+    </div>
+  </section>
+
+  <section>
+    <div class="cab"><span class="num">6</span><h2>Perguntas</h2></div>
+    <p class="ajuda">Conta pra gente um pouco mais sobre você. Vai nos ajudar a entender se você tem o perfil certo para a vaga.</p>
+
+    <div class="campo">
+      <label>Qual é a sua disponibilidade de horário? <span style="font-weight:400;color:var(--ink-soft)">— marque todas que se aplicam</span></label>
+      <label class="check"><input type="checkbox" name="dispManha" id="dispManha"><span>Manhã (abertura — geralmente 7h às 13h ou 8h às 14h)</span></label>
+      <label class="check"><input type="checkbox" name="dispTarde" id="dispTarde"><span>Tarde / noite (geralmente 13h às 19h ou 14h às 22h)</span></label>
+    </div>
+
+    <div class="campo">
+      <label for="inicioDisponivel">Em quanto tempo você pode começar a trabalhar?</label>
+      <select id="inicioDisponivel" name="inicioDisponivel">
+        <option value="">Selecione</option>
+        <option>Imediatamente</option>
+        <option>Em até 1 semana</option>
+        <option>Em até 2 semanas</option>
+        <option>Em até 1 mês</option>
+        <option>Em mais de 1 mês</option>
+      </select>
+      <p class="erro" data-erro="inicioDisponivel">Informe sua disponibilidade para começar.</p>
+    </div>
+    <div class="campo">
+      <label for="situacaoPressao">Imagine que a loja está cheia de clientes ao mesmo tempo e tudo acontece de uma vez. Como você costuma reagir nessas situações?</label>
+      <textarea id="situacaoPressao" name="situacaoPressao" placeholder="Descreva como você lida com ritmo intenso de trabalho..."></textarea>
+    </div>
+
+    <div class="campo">
+      <label for="motivacao">Por que você quer trabalhar com a gente? O que te atraiu nessa vaga?</label>
+      <textarea id="motivacao" name="motivacao" placeholder="Conta com suas palavras..."></textarea>
+    </div>
+  </section>
+
+  <section>
+    <div class="cab"><span class="num">7</span><h2>Currículo</h2></div>
+    <p class="ajuda">Anexe seu currículo se tiver. Pode ser um PDF, foto ou imagem. Se não tiver, tudo bem — as informações acima já são suficientes.</p>
+
+    <div class="campo">
+      <label for="curriculo">Arquivo do currículo <span class="opc">— opcional</span></label>
+      <input id="curriculo" name="curriculo" type="file" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.webp" style="padding:10px 13px">
+      <p class="dica">PDF, Word ou foto. Máximo 5 MB.</p>
+    </div>
+  </section>
+
+  <section class="envio">
+    <h2>Antes de enviar</h2>
+    <p>Confira se o celular e os telefones dos empregos estão certos. É por aí que a gente entra em contato.</p>
+    <label class="check">
+      <input type="checkbox" id="veracidade" name="veracidade">
+      <span>Confirmo que as informações são verdadeiras</span>
+    </label>
+    <label class="check">
+      <input type="checkbox" id="lgpd" name="lgpd">
+      <span>Autorizo o uso desses dados para este processo seletivo, conforme a Lei Geral de Proteção de Dados</span>
+    </label>
+    <button type="button" id="enviar">Enviar meu cadastro</button>
+    <div class="aviso" id="aviso"></div>
+  </section>
+
+</main>
+
+<div id="overlay-enviando" style="
+  display:none; position:fixed; inset:0; z-index:9999;
+  background:rgba(0,0,0,0.55); backdrop-filter:blur(3px);
+  flex-direction:column; align-items:center; justify-content:center;
+">
+  <div style="
+    background:#fff; border-radius:16px; padding:36px 48px;
+    text-align:center; box-shadow:0 8px 32px rgba(0,0,0,0.25); max-width:320px;
+  ">
+    <div id="spinner" style="
+      width:48px; height:48px; border:5px solid #e0e0e0;
+      border-top-color:#1a5c4a; border-radius:50%;
+      animation:girar 0.8s linear infinite; margin:0 auto 20px;
+    "></div>
+    <p style="font-size:18px; font-weight:700; color:#1a5c4a; margin:0 0 8px;">Enviando cadastro...</p>
+    <p style="font-size:14px; color:#666; margin:0;">Aguarde um momento, não feche a página.</p>
+  </div>
+</div>
+<style>@keyframes girar{to{transform:rotate(360deg)}}</style>
+
+<div class="fim wrap" id="fim">
+  <div class="selo">✓</div>
+  <h2>Cadastro enviado</h2>
+  <p>Recebemos suas informações. Se o seu perfil combinar com a vaga, a gente chama você para a entrevista presencial.</p>
+  <p>Fique de olho no WhatsApp.</p>
+</div>
+
+<script>
+/* ============================================================
+   ONDE AS RESPOSTAS CAEM
+   Deixe vazio e o cadastro é enviado por WhatsApp.
+   Para receber numa planilha, cole aqui a URL do Google Apps Script
+   (instruções no arquivo COMO-PUBLICAR.md).
+   ============================================================ */
+const ENDPOINT = "https://script.google.com/macros/s/AKfycbyZ_a6zBe7o5wdQuSweiJnks-Pfuf3ZTrVgU82JHXdn7gnOuDX5IDyFx4dtbgMWee83/exec";
+
+const $ = s => document.querySelector(s);
+const form = $('#formulario');
+
+/* ---------- máscaras ---------- */
+const so = v => v.replace(/\D/g,'');
+function mascaraCpf(v){v=so(v).slice(0,11);
+  return v.replace(/(\d{3})(\d)/,'$1.$2').replace(/(\d{3})(\d)/,'$1.$2').replace(/(\d{3})(\d{1,2})$/,'$1-$2');}
+function mascaraTel(v){v=so(v).slice(0,11);
+  if(v.length<=10) return v.replace(/(\d{2})(\d)/,'($1) $2').replace(/(\d{4})(\d)/,'$1-$2');
+  return v.replace(/(\d{2})(\d)/,'($1) $2').replace(/(\d{5})(\d)/,'$1-$2');}
+function mascaraCep(v){return so(v).slice(0,8).replace(/(\d{5})(\d)/,'$1-$2');}
+
+$('#cpf').addEventListener('input',e=>e.target.value=mascaraCpf(e.target.value));
+$('#cep').addEventListener('input',e=>e.target.value=mascaraCep(e.target.value));
+['celular','recado','e1tel','e2tel','e3tel'].forEach(id=>{
+  $('#'+id).addEventListener('input',e=>e.target.value=mascaraTel(e.target.value));
+});
+$('#uf').addEventListener('input',e=>e.target.value=e.target.value.toUpperCase().replace(/[^A-Z]/g,''));
+/* ctpsUf removido */
+
+/* ---------- CPF válido ---------- */
+function cpfValido(str){
+  const c = so(str);
+  if(c.length!==11 || /^(\d)\1{10}$/.test(c)) return false;
+  let s=0; for(let i=0;i<9;i++) s+=+c[i]*(10-i);
+  let d1=(s*10)%11; if(d1===10) d1=0; if(d1!==+c[9]) return false;
+  s=0; for(let i=0;i<10;i++) s+=+c[i]*(11-i);
+  let d2=(s*10)%11; if(d2===10) d2=0;
+  return d2===+c[10];
+}
+
+
+/* ---------- CEP preenche o endereço ---------- */
+$('#cep').addEventListener('blur',async e=>{
+  const c = so(e.target.value);
+  const status = $('#cepStatus');
+  if(c.length!==8){status.textContent='';return;}
+  status.textContent='Buscando endereço...';
+  try{
+    const r = await fetch(`https://viacep.com.br/ws/${c}/json/`);
+    const d = await r.json();
+    if(d.erro){status.textContent='CEP não encontrado. Preencha o endereço à mão.';return;}
+    if(d.logradouro) $('#rua').value = d.logradouro;
+    if(d.bairro) $('#bairro').value = d.bairro;
+    $('#cidade').value = d.localidade || '';
+    $('#uf').value = d.uf || '';
+    status.textContent='Endereço preenchido. Confira e complete o número.';
+    progresso();
+  }catch(err){ status.textContent='Não deu para buscar. Preencha o endereço à mão.'; }
+});
+
+/* ---------- progresso ---------- */
+const campos = [...form.querySelectorAll('input,select,textarea')].filter(el=>el.type!=='checkbox');
+function progresso(){
+  const cheios = campos.filter(el=>el.value.trim()!=='').length;
+  const p = Math.round(cheios/campos.length*100);
+  $('#preenchido').style.width = p+'%';
+  $('#pct').textContent = p+'% pronto';
+}
+form.addEventListener('input',progresso);
+progresso();
+
+/* ---------- validação ---------- */
+function marcar(el,ruim){
+  el.setAttribute('aria-invalid',ruim?'true':'false');
+  const msg = document.querySelector(`[data-erro="${el.id}"]`);
+  if(msg) msg.classList.toggle('ver',ruim);
+}
+/* mapa: id do campo → label legível */
+var LABELS = {
+  nome:'Nome completo', nascimento:'Data de nascimento', celular:'Celular',
+  genero:'Gênero', email:'E-mail', escolaridade:'Escolaridade',
+  cargo:'Cargo pretendido', cpf:'CPF', rg:'RG', reservista:'Cert. de reservista',
+  cep:'CEP', numero:'Número', rua:'Rua', bairro:'Bairro', cidade:'Cidade', uf:'Estado',
+  inicioDisponivel:'Disponibilidade para início'
+};
+var CAMPOS_AVISO = Object.keys(LABELS);
+
+function validarFormato(){
+  /* verifica apenas formato, não obrigatoriedade */
+  var erros = [];
+  var cpf = $('#cpf');
+  if(cpf.value.trim()!=='' && !cpfValido(cpf.value)){ marcar(cpf,true); erros.push(cpf); }
+  else marcar(cpf,false);
+  var cel = $('#celular');
+  if(cel.value.trim()!=='' && so(cel.value).length<10){ marcar(cel,true); erros.push(cel); }
+  else marcar(cel,false);
+  return erros;
+}
+
+function camposVazios(){
+  var vazios = [];
+  CAMPOS_AVISO.forEach(function(id){
+    var el = $('#'+id);
+    if(!el) return;
+    if(el.value.trim()==='' || el.value==='') vazios.push(LABELS[id]);
+  });
+  return vazios;
+}
+
+/* ---------- envio ---------- */
+function coletar(){
+  const d = {};
+  form.querySelectorAll('input,select,textarea').forEach(el=>{
+    if(!el.name) return;
+    d[el.name] = el.type==='checkbox' ? (el.checked?'Sim':'Não') : el.value.trim();
+  });
+  d.enviadoEm = new Date().toLocaleString('pt-BR');
+  return d;
+}
+function comoTexto(d){
+  const L = (r,v)=> v && v!=='Não' ? `${r}: ${v}\n` : '';
+  let t = `CADASTRO DE CANDIDATO\n${d.enviadoEm}\n\n`;
+  t += `-- DADOS --\n`;
+  t += L('Nome',d.nome)+L('Nome social',d.nomeSocial)+L('Nascimento',d.nascimento)+L('Gênero',d.genero);
+  t += L('Celular',d.celular)+L('Recado',d.recado)+L('E-mail',d.email);
+  t += L('Escolaridade',d.escolaridade)+L('Curso',d.curso);
+  t += `\n-- DOCUMENTOS --\n`;
+  t += L('CPF',d.cpf)+L('RG',d.rg)+L('Órgão',d.rgOrgao);
+  t += d.ctpsDigital==='Sim' ? 'CTPS: digital\n' : L('CTPS',[d.ctpsNum,d.ctpsSerie,d.ctpsUf].filter(Boolean).join(' / '));
+  t += L('PIS',d.pis)+L('Título',d.titulo)+L('CNH',d.cnh)+L('Categoria',d.cnhCat)+L('Reservista',d.reservista);
+  t += `\n-- ENDEREÇO --\n`;
+  t += L('Rua',`${d.rua}, ${d.numero} ${d.complemento}`)+L('Bairro',d.bairro);
+  t += L('Cidade',`${d.cidade}/${d.uf}`)+L('CEP',d.cep)+L('Transporte',d.transporte);
+  t += `\n-- REDES --\n`;
+  t += L('Instagram',d.instagram && '@'+d.instagram)+L('TikTok',d.tiktok && '@'+d.tiktok);
+  t += L('LinkedIn',d.linkedin)+L('Facebook',d.facebook && '@'+d.facebook);
+  [1,2,3].forEach(i=>{
+    if(!d['e'+i+'emp']) return;
+    t += `\n-- EMPREGO ${i} --\n`;
+    t += L('Empresa',d['e'+i+'emp'])+L('Função',d['e'+i+'cargo'])+L('Telefone',d['e'+i+'tel']);
+    t += L('Período',`${d['e'+i+'ini']} a ${d['e'+i+'fim']||'atual'}`)+L('Supervisor',d['e'+i+'chefe']);
+    t += L('Salário',d['e'+i+'salario'])+L('Motivo da saída',d['e'+i+'motivo']);
+    t += `Autoriza contato: ${d['e'+i+'ok']}\n`;
+  });
+  if(d.primeiro) t += `\n-- EXPERIÊNCIA SEM REGISTRO --\n${d.primeiro}\n`;
+  t += `\n-- VAGA E DISPONIBILIDADE --\n`;
+  t += L('Cargo pretendido',d.cargo);
+  const turnos = [d.dispManha==='Sim'?'Manhã':'',d.dispTarde==='Sim'?'Tarde/noite':'','',''].filter(Boolean).join(', ');
+  if(turnos) t += `Disponibilidade: ${turnos}\n`;
+  t += L('Pode começar em',d.inicioDisponivel);
+  t += `\n-- PERGUNTAS --\n`;
+  t += L('Lida com pressão',d.situacaoPressao);
+  t += L('Motivação',d.motivacao);
+  return t;
+}
+
+var _envioConfirmado = false;
+
+/* listener dinâmico para o botão "Enviar mesmo assim" criado no aviso */
+document.getElementById('aviso').addEventListener('click', function(e){
+  if(e.target && e.target.id === 'btnConfirmarEnvio'){
+    _envioConfirmado = true;
+    document.getElementById('enviar').onclick();
+  }
+});
+
+document.getElementById('enviar').onclick = function(){
+  var aviso = document.getElementById('aviso');
+  var btn   = document.getElementById('enviar');
+
+  /* feedback imediato */
+  btn.textContent = 'Verificando...';
+  setTimeout(function(){ btn.textContent = 'Enviar meu cadastro'; }, 1500);
+
+  /* 1) formato de CPF/celular */
+  var errosFormato = validarFormato();
+  if(errosFormato.length){
+    aviso.innerHTML = '&#9888; Corrija os campos marcados em vermelho antes de enviar.';
+    aviso.style.display = 'block';
+    aviso.style.background = '#fff3cd';
+    aviso.style.color = '#333';
+    aviso.style.padding = '12px';
+    aviso.style.borderRadius = '8px';
+    aviso.style.marginTop = '12px';
+    errosFormato[0].scrollIntoView({block:'center',behavior:'smooth'});
+    btn.textContent = 'Enviar meu cadastro';
+    return;
+  }
+
+  /* 2) checkboxes obrigatórios */
+  var ver = document.getElementById('veracidade');
+  var lgp = document.getElementById('lgpd');
+  if(!ver.checked || !lgp.checked){
+    aviso.innerHTML = 'Marque as duas confirmações acima para enviar.';
+    aviso.style.display = 'block';
+    aviso.style.background = '#fff3cd';
+    aviso.style.color = '#333';
+    aviso.style.padding = '12px';
+    aviso.style.borderRadius = '8px';
+    aviso.style.marginTop = '12px';
+    btn.textContent = 'Enviar meu cadastro';
+    return;
+  }
+
+  /* 3) campos vazios — avisa mas não bloqueia */
+  if(!_envioConfirmado){
+    var vazios = camposVazios();
+    if(vazios.length > 0){
+      aviso.style.display = 'block';
+      aviso.style.background = '#fff3cd';
+      aviso.style.color = '#333';
+      aviso.style.padding = '14px';
+      aviso.style.borderRadius = '8px';
+      aviso.style.marginTop = '12px';
+      aviso.innerHTML =
+        '<strong>Aten&#231;&#227;o — campos em branco:</strong><br><em>' +
+        vazios.join(', ') +
+        '</em><br><br>Voc&#234; pode voltar e preencher, ou enviar assim mesmo.' +
+        '<br><br><button type="button" id="btnConfirmarEnvio" ' +
+        'style="padding:10px 22px;background:#c00;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:15px;font-weight:bold;">Enviar mesmo assim</button>';
+      btn.textContent = 'Enviar meu cadastro';
+      return;
+    }
+  }
+
+  _envioConfirmado = false;
+  aviso.style.display = 'none';
+
+  btn.disabled = true;
+  btn.textContent = 'Enviando...';
+  document.getElementById('overlay-enviando').style.display = 'flex';
+
+  var d = coletar();
+  var fileinput = $('#curriculo');
+
+  function despachar(dados){
+    fetch(ENDPOINT, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: {'Content-Type': 'text/plain;charset=utf-8'},
+      body: JSON.stringify(dados)
+    }).catch(function(){}).finally(function(){
+      document.getElementById('overlay-enviando').style.display = 'none';
+      form.style.display = 'none';
+      $('#fim').classList.add('ver');
+      window.scrollTo({top:0,behavior:'smooth'});
+    });
+  }
+
+  if(fileinput && fileinput.files && fileinput.files[0]){
+    var file = fileinput.files[0];
+    if(file.size > 5 * 1024 * 1024){
+      aviso.textContent = 'O currículo é muito grande. Use um arquivo de até 5 MB.';
+      aviso.classList.add('ver');
+      btn.disabled = false;
+      btn.textContent = 'Enviar meu cadastro';
+      return;
+    }
+    var reader = new FileReader();
+    reader.onload = function(ev){
+      d._curriculo = {nome: file.name, tipo: file.type, dados: ev.target.result.split(',')[1]};
+      despachar(d);
+    };
+    reader.readAsDataURL(file);
+  } else {
+    despachar(d);
+  }
+};
+</script>
+</body>
+</html>
