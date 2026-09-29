@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Filtro de Candidatos — Tem Tudo</title>
+<style>
+:root{
+  --ink:#1a1a1a;--ink-soft:#555;--paper:#FBFAF7;--line:#DCD9D1;
+  --field:#fff;--amarelo:#FFD700;--amarelo-dark:#c8a000;--erro:#A03225;
+  --r:10px;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:'Segoe UI',system-ui,sans-serif;font-size:15px;line-height:1.5}
+header{background:var(--amarelo);padding:18px 24px;display:flex;align-items:center;gap:14px;border-bottom:2px solid var(--amarelo-dark)}
+header h1{margin:0;font-size:1.25rem;font-weight:800;color:#1a1a1a}
+header span{font-size:.82rem;color:#7a5c00;font-weight:600;letter-spacing:.08em}
+
+.main{max-width:1100px;margin:0 auto;padding:24px 20px 60px}
+
+/* config */
+.config{background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:20px;margin-bottom:24px}
+.config h2{margin:0 0 12px;font-size:1rem;font-weight:700}
+.url-row{display:flex;gap:10px;align-items:stretch}
+.url-row input{flex:1;border:1px solid var(--line);border-radius:8px;padding:10px 13px;font:inherit;font-size:.95rem}
+.url-row input:focus{outline:2px solid var(--amarelo-dark);border-color:var(--ink)}
+.btn{background:var(--amarelo);color:#1a1a1a;border:none;border-radius:8px;padding:10px 20px;font:inherit;font-weight:700;cursor:pointer;white-space:nowrap}
+.btn:hover{background:var(--amarelo-dark)}
+.btn:disabled{opacity:.5;cursor:default}
+.btn-outline{background:#fff;border:1px solid var(--line);color:var(--ink)}
+.btn-outline:hover{background:#f5f3ed;border-color:#aaa}
+.btn-verde{background:#16a34a;color:#fff}
+.btn-verde:hover{background:#15803d}
+
+/* filtros */
+.filtros{background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:20px;margin-bottom:20px;display:none}
+.filtros h2{margin:0 0 16px;font-size:1rem;font-weight:700}
+.filtros-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px}
+.f-grupo{display:flex;flex-direction:column;gap:6px}
+.f-grupo label{font-size:.82rem;font-weight:600;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.06em}
+.f-grupo input,.f-grupo select{border:1px solid var(--line);border-radius:8px;padding:9px 11px;font:inherit;font-size:.92rem;background:var(--field)}
+.f-grupo input:focus,.f-grupo select:focus{outline:2px solid var(--amarelo-dark);border-color:var(--ink)}
+.f-acoes{display:flex;gap:10px;margin-top:16px;flex-wrap:wrap;align-items:center}
+.chip{display:inline-flex;align-items:center;gap:5px;background:#f5f3ed;border:1px solid var(--line);
+  border-radius:999px;padding:4px 12px;font-size:.82rem;cursor:pointer;user-select:none;transition:all .15s}
+.chip:hover{border-color:#aaa;background:#ede9df}
+.chip input{accent-color:var(--amarelo-dark);width:13px;height:13px;cursor:pointer}
+.chip:has(input:checked){background:var(--amarelo);border-color:var(--amarelo-dark);font-weight:600}
+.slider-wrap{display:flex;flex-direction:column;gap:4px}
+.slider-wrap input[type=range]{width:100%;accent-color:var(--amarelo-dark);height:6px;cursor:pointer}
+.slider-label{display:flex;justify-content:space-between;font-size:.78rem;color:var(--ink-soft)}
+.distancia-val{font-weight:700;color:var(--ink);font-size:.92rem}
+.badge{background:var(--amarelo);color:#1a1a1a;border-radius:999px;padding:3px 12px;font-size:.82rem;font-weight:700}
+
+/* tabela */
+.resultado{display:none}
+.topo-resultado{display:flex;align-items:center;gap:12px;margin-bottom:12px;flex-wrap:wrap}
+.topo-resultado h2{margin:0;font-size:1rem;font-weight:700}
+.tabela-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:var(--r)}
+table{width:100%;border-collapse:collapse;font-size:.88rem}
+thead{background:#f5f3ed;position:sticky;top:0}
+th{padding:10px 12px;text-align:left;font-weight:700;border-bottom:2px solid var(--line);white-space:nowrap;cursor:pointer;user-select:none}
+th:hover{background:#ede9df}
+th .sort-icon{margin-left:4px;color:#aaa;font-size:.75rem}
+td{padding:9px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:#fdfcf8}
+.tag{display:inline-block;background:#f0f0f0;border-radius:4px;padding:1px 7px;font-size:.78rem;margin:1px}
+.tag.sim{background:#dcfce7;color:#166534}
+.tag.nao{background:#fef2f2;color:#991b1b}
+
+/* vazio/carregando */
+.estado{text-align:center;padding:48px 20px;color:var(--ink-soft)}
+.estado .icone{font-size:2.5rem;margin-bottom:12px}
+.estado p{margin:0;font-size:.95rem}
+.spinner{width:36px;height:36px;border:4px solid var(--line);border-top-color:var(--amarelo-dark);border-radius:50%;animation:girar .7s linear infinite;margin:0 auto 14px}
+@keyframes girar{to{transform:rotate(360deg)}}
+
+/* aviso config */
+.aviso-url{background:#fff3cd;border:1px solid #ffc107;border-radius:8px;padding:12px 16px;margin-bottom:16px;font-size:.9rem;display:none}
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <div><span>TEM TUDO</span></div>
+    <h1>Filtro de Candidatos</h1>
+  </div>
+</header>
+
+<div class="main">
+
+  <!-- Config URL -->
+  <div class="config">
+    <h2>🔗 URL do Apps Script</h2>
+    <p style="margin:0 0 12px;color:var(--ink-soft);font-size:.9rem">Cole aqui a URL do seu Apps Script (a mesma que usa no formulário, com <code>?acao=listar</code> no final).</p>
+    <div class="aviso-url" id="avisoUrl">⚠️ Cole a URL do Apps Script acima e clique em Carregar.</div>
+    <div class="url-row">
+      <input type="url" id="urlScript" placeholder="https://script.google.com/macros/s/.../exec" value="https://script.google.com/macros/s/AKfycbyZ_a6zBe7o5wdQuSweiJnks-Pfuf3ZTrVgU82JHXdn7gnOuDX5IDyFx4dtbgMWee83/exec">
+      <button class="btn" id="btnCarregar" onclick="carregar()">Carregar candidatos</button>
+    </div>
+  </div>
+
+  <!-- Filtros -->
+  <div class="filtros" id="painelFiltros">
+    <h2>🔍 Filtros</h2>
+    <div class="filtros-grid">
+
+      <div class="f-grupo">
+        <label>Nome</label>
+        <input type="text" id="fNome" placeholder="Buscar por nome..." oninput="aplicarFiltros()">
+      </div>
+
+      <div class="f-grupo">
+        <label>Gênero <span style="font-weight:400;text-transform:none;font-size:.78rem">(marque os que quer ver)</span></label>
+        <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:2px" id="fGeneroWrap">
+          <label class="chip"><input type="checkbox" value="Masculino" onchange="aplicarFiltros()"> Masculino</label>
+          <label class="chip"><input type="checkbox" value="Feminino" onchange="aplicarFiltros()"> Feminino</label>
+          <label class="chip"><input type="checkbox" value="Outro" onchange="aplicarFiltros()"> Outro</label>
+          <label class="chip"><input type="checkbox" value="Prefiro não informar" onchange="aplicarFiltros()"> Prefiro não informar</label>
+        </div>
+      </div>
+
+      <div class="f-grupo" style="grid-column:span 2">
+        <label>Escolaridade <span style="font-weight:400;text-transform:none;font-size:.78rem">(marque as que quer ver)</span></label>
+        <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:2px" id="fEscolaridadeWrap">
+          <label class="chip"><input type="checkbox" value="Fundamental incompleto" onchange="aplicarFiltros()"> Fund. incompleto</label>
+          <label class="chip"><input type="checkbox" value="Fundamental completo" onchange="aplicarFiltros()"> Fund. completo</label>
+          <label class="chip"><input type="checkbox" value="Médio incompleto" onchange="aplicarFiltros()"> Médio incompleto</label>
+          <label class="chip"><input type="checkbox" value="Médio completo" onchange="aplicarFiltros()"> Médio completo</label>
+          <label class="chip"><input type="checkbox" value="Técnico" onchange="aplicarFiltros()"> Técnico</label>
+          <label class="chip"><input type="checkbox" value="Superior incompleto" onchange="aplicarFiltros()"> Superior incompleto</label>
+          <label class="chip"><input type="checkbox" value="Superior completo" onchange="aplicarFiltros()"> Superior completo</label>
+        </div>
+      </div>
+
+      <div class="f-grupo">
+        <label>Cidade</label>
+        <input type="text" id="fCidade" placeholder="Ex.: Petrópolis" oninput="aplicarFiltros()">
+      </div>
+
+      <div class="f-grupo">
+        <label>Enviado a partir de</label>
+        <input type="date" id="fDataDe" onchange="aplicarFiltros()">
+      </div>
+
+      <div class="f-grupo">
+        <label>Enviado até</label>
+        <input type="date" id="fDataAte" onchange="aplicarFiltros()">
+      </div>
+
+      <div class="f-grupo">
+        <label>Tem experiência</label>
+        <select id="fExperiencia" onchange="aplicarFiltros()">
+          <option value="">Qualquer</option>
+          <option value="sim">Com experiência registrada</option>
+          <option value="primeiro">Primeiro emprego</option>
+        </select>
+      </div>
+
+
+
+    </div>
+    <div class="f-grupo" style="grid-column:1/-1;margin-top:4px">
+      <label>📍 Distância até a loja</label>
+      <div style="display:flex;gap:12px;align-items:flex-start;flex-wrap:wrap;margin-top:4px">
+        <select id="fLoja" onchange="onLojaChange()" style="border:1px solid var(--line);border-radius:8px;padding:9px 11px;font:inherit;font-size:.92rem;min-width:200px">
+          <option value="">— Selecione a loja —</option>
+          <option value="alto">Alto da Serra — Rua Teresa, 1515</option>
+          <option value="bingen">Bingen — Rua Dr. Paulo Hervé, 1017</option>
+          <option value="centro">Centro — Rua do Imperador, 474</option>
+          <option value="quitandinha">Quitandinha — Rua General Rondon, 1010</option>
+          <option value="itaipava">Itaipava — Est. União e Indústria, 10775</option>
+        </select>
+        <div class="slider-wrap" style="flex:1;min-width:200px" id="distanciaSliderWrap" style="display:none">
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <span style="font-size:.78rem;color:var(--ink-soft)">Distância máxima</span>
+            <span class="distancia-val" id="distanciaVal">Sem limite</span>
+          </div>
+          <input type="range" id="fDistancia" min="0" max="30" value="0" oninput="onSliderDistancia(this.value)">
+          <div class="slider-label"><span>Sem limite</span><span>30 km</span></div>
+        </div>
+        <div id="distanciaStatus" style="font-size:.82rem;color:var(--ink-soft);align-self:center"></div>
+      </div>
+    </div>
+
+    <div class="f-acoes">
+      <button class="btn btn-outline" onclick="limparFiltros()">Limpar filtros</button>
+      <span id="contadorBadge" class="badge" style="display:none"></span>
+    </div>
+  </div>
+
+  <!-- Resultado -->
+  <div class="resultado" id="painelResultado">
+    <div class="topo-resultado">
+      <h2 id="tituloResultado">Candidatos</h2>
+      <button class="btn btn-verde" onclick="exportarCSV()">⬇ Exportar Excel / CSV</button>
+    </div>
+    <div class="tabela-wrap">
+      <div class="estado" id="estadoTabela">
+        <div class="icone">📋</div>
+        <p>Nenhum candidato encontrado com esses filtros.</p>
+      </div>
+      <table id="tabela" style="display:none">
+        <thead>
+          <tr>
+            <th onclick="ordenar('nome')">Nome <span class="sort-icon">↕</span></th>
+            <th onclick="ordenar('nascimento')">Nasc. <span class="sort-icon">↕</span></th>
+            <th onclick="ordenar('genero')">Gênero <span class="sort-icon">↕</span></th>
+            <th onclick="ordenar('celular')">Celular <span class="sort-icon">↕</span></th>
+            <th onclick="ordenar('escolaridade')">Escolaridade <span class="sort-icon">↕</span></th>
+            <th onclick="ordenar('cidade')">Endereço <span class="sort-icon">↕</span></th>
+            <th onclick="ordenar('primeiroEmprego')">1º emprego <span class="sort-icon">↕</span></th>
+            <th onclick="ordenar('enviadoEm')">Enviado em <span class="sort-icon">↕</span></th>
+          </tr>
+        </thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Estado inicial -->
+  <div class="estado" id="estadoInicial">
+    <div class="icone">👆</div>
+    <p>Cole a URL do Apps Script acima e clique em <strong>Carregar candidatos</strong>.</p>
+    <p style="margin-top:8px;font-size:.82rem">Você precisará atualizar o Apps Script com o novo código primeiro.</p>
+  </div>
+
+</div>
+
+<script>
+var ESCOL_ORDEM = {
+  'Fundamental incompleto':1,'Fundamental completo':2,'Médio incompleto':3,
+  'Médio completo':4,'Técnico':5,'Superior incompleto':6,'Superior completo':7
+};
+
+var _todos = [];
+var _filtrados = [];
+var _ordemCol = '';
+var _ordemDir = 1;
+
+function carregar(){
+  var url = document.getElementById('urlScript').value.trim();
+  if(!url){ document.getElementById('avisoUrl').style.display='block'; return; }
+  document.getElementById('avisoUrl').style.display='none';
+
+  var btn = document.getElementById('btnCarregar');
+  btn.disabled = true; btn.textContent = 'Carregando...';
+  document.getElementById('estadoInicial').innerHTML = '<div class="spinner"></div><p>Buscando candidatos na planilha...</p>';
+
+  try{ localStorage.setItem('scriptUrl', url); }catch(e){}
+
+  var urlFetch = url + (url.includes('?') ? '&' : '?') + 'acao=listar';
+
+  fetch(urlFetch)
+    .then(function(r){ return r.json(); })
+    .then(function(dados){
+      if(dados.erro){ throw new Error(dados.erro); }
+      _todos = dados.candidatos || [];
+      document.getElementById('painelFiltros').style.display='block';
+      document.getElementById('painelResultado').style.display='block';
+      document.getElementById('estadoInicial').style.display='none';
+      aplicarFiltros();
+    })
+    .catch(function(e){
+      document.getElementById('estadoInicial').innerHTML =
+        '<div class="icone">❌</div><p><strong>Erro ao carregar.</strong><br>'+e.message+'<br><br>Verifique se o Apps Script foi atualizado e a URL está correta.</p>';
+    })
+    .finally(function(){
+      btn.disabled=false; btn.textContent='Carregar candidatos';
+    });
+}
+
+function aplicarFiltros(){
+  var fNome       = document.getElementById('fNome').value.trim().toLowerCase();
+  var fGeneroChecks = Array.from(document.querySelectorAll('#fGeneroWrap input:checked')).map(function(i){return i.value;});
+  var fEscolChecks = Array.from(document.querySelectorAll('#fEscolaridadeWrap input:checked')).map(function(i){return i.value;});
+  var fCidade     = document.getElementById('fCidade').value.trim().toLowerCase();
+  var fBairroChecks = [];
+  var maxKm = _distanciaAtiva ? parseInt(document.getElementById('fDistancia').value)||0 : 0;
+  var fDataDe     = document.getElementById('fDataDe').value;
+  var fDataAte    = document.getElementById('fDataAte').value;
+  var fExp        = document.getElementById('fExperiencia').value;
+
+  _filtrados = _todos.filter(function(c){
+    if(fNome && !(c.nome||'').toLowerCase().includes(fNome)) return false;
+    if(fGeneroChecks.length && fGeneroChecks.indexOf(c.genero||'')===-1) return false;
+    if(fEscolChecks.length && fEscolChecks.indexOf(c.escolaridade||'')===-1) return false;
+    if(fCidade && !(c.cidade||'').toLowerCase().includes(fCidade)) return false;
+    if(fBairroChecks.length && fBairroChecks.indexOf((c.bairro||'').toLowerCase())===-1) return false;
+    if(fDataDe || fDataAte){
+      var dataEnvio = parseBR(c.enviadoEm);
+      if(fDataDe && dataEnvio && dataEnvio < new Date(fDataDe)) return false;
+      if(fDataAte && dataEnvio){
+        var ate = new Date(fDataAte); ate.setDate(ate.getDate()+1);
+        if(dataEnvio > ate) return false;
+      }
+    }
+    if(fExp==='sim' && (c.primeiroEmprego||'').toLowerCase()==='sim') return false;
+    if(fExp==='primeiro' && (c.primeiroEmprego||'').toLowerCase()!=='sim') return false;
+    if(_distanciaAtiva && maxKm > 0 && c._distanciaKm !== undefined && c._distanciaKm > maxKm) return false;
+    return true;
+  });
+
+  renderTabela();
+  atualizarContador();
+}
+
+function formatarData(str){
+  if(!str) return '—';
+  // se vier como "Fri Apr 30 1999..." converter
+  var d = new Date(str);
+  if(!isNaN(d.getTime()) && str.length > 10){
+    return d.toLocaleDateString('pt-BR');
+  }
+  return str || '—';
+}
+function parseBR(str){
+  if(!str) return null;
+  // formato "dd/mm/yyyy HH:MM:SS" ou "dd/mm/yyyy"
+  var m = str.match(/(\d{2})\/(\d{2})\/(\d{4})/);
+  if(!m) return null;
+  return new Date(m[3], m[2]-1, m[1]);
+}
+
+function renderTabela(){
+  var tbody = document.getElementById('tbody');
+  var tabela = document.getElementById('tabela');
+  var estado = document.getElementById('estadoTabela');
+  var titulo = document.getElementById('tituloResultado');
+
+  titulo.textContent = _filtrados.length + ' candidato' + (_filtrados.length!==1?'s':'') + ' encontrado' + (_filtrados.length!==1?'s':'');
+
+  if(_filtrados.length===0){
+    tabela.style.display='none';
+    estado.style.display='block';
+    return;
+  }
+  estado.style.display='none';
+  tabela.style.display='table';
+
+  tbody.innerHTML = _filtrados.map(function(c){
+    var cnh = (c.cnh||'').trim();
+    var prim = (c.primeiroEmprego||'').toLowerCase()==='sim';
+    return '<tr>'+
+      '<td><strong>'+(c.nome||'—')+'</strong>'+(c.nomeSocial?' <span style="color:#888;font-size:.82rem">('+c.nomeSocial+')</span>':'')+'</td>'+
+      '<td>'+formatarData(c.nascimento)+'</td>'+
+      '<td>'+(c.genero||'—')+'</td>'+
+      '<td>'+(c.celular ? '<a href="tel:'+c.celular+'" style="color:inherit">'+c.celular+'</a>' : '—')+'</td>'+
+      '<td>'+(c.escolaridade||'—')+'</td>'+
+      '<td>'+(c.rua ? c.rua+(c.numero?', '+c.numero:'')+'<br>' : '')+
+        (c.bairro ? '<span style="color:#666;font-size:.82rem">'+c.bairro+'</span><br>' : '')+
+        (c.cidade ? '<span style="color:#888;font-size:.8rem">'+c.cidade+(c.uf?'/'+c.uf:'')+'</span>' : '—')+
+        (c._distanciaKm !== undefined ? '<br><a href="https://www.google.com/maps?q='+c._geocoordLat+','+c._geocoordLon+'" target="_blank" title="Ver no mapa" style="text-decoration:none"><span style="background:#fef9c3;border-radius:4px;padding:1px 6px;font-size:.78rem;font-weight:600;cursor:pointer;">📍 '+c._distanciaKm+' km ↗</span></a>' : '')+
+        '</td>'+
+      '<td>'+(prim ? '<span class="tag sim">Sim</span>' : '<span class="tag">Não</span>')+'</td>'+
+      '<td style="white-space:nowrap">'+(c.enviadoEm||'—')+'</td>'+
+      '</tr>';
+  }).join('');
+}
+
+function ordenar(col){
+  if(_ordemCol===col){ _ordemDir*=-1; } else { _ordemCol=col; _ordemDir=1; }
+  _filtrados.sort(function(a,b){
+    var va = (a[col]||'').toString().toLowerCase();
+    var vb = (b[col]||'').toString().toLowerCase();
+    if(col==='escolaridade'){ va=ESCOL_ORDEM[a[col]]||0; vb=ESCOL_ORDEM[b[col]]||0; }
+    if(va<vb) return -1*_ordemDir;
+    if(va>vb) return 1*_ordemDir;
+    return 0;
+  });
+  renderTabela();
+}
+
+function atualizarContador(){
+  var badge = document.getElementById('contadorBadge');
+  var escolAtivos = document.querySelectorAll('#fEscolaridadeWrap input:checked').length > 0 ? 1 : 0;
+  var generoAtivos = document.querySelectorAll('#fGeneroWrap input:checked').length > 0 ? 1 : 0;
+  var distAtivo = _lojaCoords ? 1 : 0;
+  var ativos = ['fNome','fCidade','fDataDe','fDataAte','fExperiencia']
+    .filter(function(id){ return document.getElementById(id).value!==''; }).length + escolAtivos + generoAtivos + distAtivo;
+  if(ativos>0){
+    badge.textContent = ativos+' filtro'+(ativos>1?'s':'')+' ativo'+(ativos>1?'s':'');
+    badge.style.display='inline-block';
+  } else {
+    badge.style.display='none';
+  }
+}
+
+function limparFiltros(){
+  ['fNome','fCidade','fDataDe','fDataAte','fExperiencia']
+    .forEach(function(id){ var el=document.getElementById(id); if(el) el.value=''; });
+  document.querySelectorAll('#fEscolaridadeWrap input, #fGeneroWrap input').forEach(function(i){ i.checked=false; });
+  document.getElementById('fLoja').value='';
+  document.getElementById('fDistancia').value=0;
+  document.getElementById('distanciaVal').textContent='Sem limite';
+  document.getElementById('distanciaStatus').textContent='';
+  _lojaCoords=null; _distanciaAtiva=false;
+  _todos.forEach(function(c){ delete c._distanciaKm; });
+  aplicarFiltros();
+}
+
+function exportarCSV(){
+  if(!_filtrados.length){ alert('Nenhum candidato para exportar.'); return; }
+  var cols = ['nome','nomeSocial','nascimento','genero','celular','email','escolaridade','cpf','rg','pis',
+    'cep','rua','numero','bairro','cidade','uf','primeiroEmprego','motivacao','enviadoEm'];
+  var header = ['Nome','Nome Social','Nascimento','Gênero','Celular','E-mail','Escolaridade','CPF','RG','PIS',
+    'CEP','Rua','Número','Bairro','Cidade','Estado','Primeiro Emprego','Motivação','Enviado em'];
+
+  var linhas = [header.join(';')];
+  _filtrados.forEach(function(c){
+    linhas.push(cols.map(function(k){
+      var v = (c[k]||'').toString().replace(/;/g,',').replace(/\n/g,' ');
+      return '"'+v+'"';
+    }).join(';'));
+  });
+
+  var bom = '﻿'; // BOM para Excel reconhecer UTF-8
+  var blob = new Blob([bom+linhas.join('\n')], {type:'text/csv;charset=utf-8'});
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url;
+  a.download = 'candidatos_'+new Date().toLocaleDateString('pt-BR').replace(/\//g,'-')+'.csv';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+// Carrega automaticamente ao abrir
+(function(){
+  try{ localStorage.setItem('scriptUrl', document.getElementById('urlScript').value); }catch(e){}
+  carregar();
+})();
+
+/* ---------- lojas e distância ---------- */
+var LOJAS = {
+  'alto':        {nome:'Alto da Serra',  endereco:'Rua Teresa, 1515, Petrópolis, Rio de Janeiro, Brasil'},
+  'bingen':      {nome:'Bingen',         endereco:'Rua Dr. Paulo Hervé, 1017, Petrópolis, Rio de Janeiro, Brasil'},
+  'centro':      {nome:'Centro',         endereco:'Rua do Imperador, 474, Petrópolis, Rio de Janeiro, Brasil'},
+  'quitandinha': {nome:'Quitandinha',    endereco:'Rua General Rondon, 1010, Petrópolis, Rio de Janeiro, Brasil'},
+  'itaipava':    {nome:'Itaipava',       endereco:'Estrada União e Indústria, 10775, Petrópolis, Rio de Janeiro, Brasil'}
+};
+var _lojaCoords = null;
+var _cacheGeo = {};      // chave candidato → {lat,lon} ou null
+var _cacheLoja = {};     // key loja → {lat,lon} ou null
+var _distanciaAtiva = false;
+
+function onLojaChange(){
+  var key = document.getElementById('fLoja').value;
+  _lojaCoords = null;
+  _distanciaAtiva = false;
+  document.getElementById('distanciaVal').textContent = 'Sem limite';
+  document.getElementById('fDistancia').value = 0;
+  _todos.forEach(function(c){ delete c._distanciaKm; });
+  document.getElementById('distanciaStatus').textContent = '';
+  aplicarFiltros();
+  if(!key) return;
+
+  // Se já temos coords da loja em cache, vai direto
+  if(_cacheLoja[key]){
+    _lojaCoords = _cacheLoja[key];
+    document.getElementById('distanciaStatus').textContent = '🔍 Calculando distâncias...';
+    geocodarTodos();
+    return;
+  }
+
+  // Geocoda a loja pelo endereço real via Nominatim
+  document.getElementById('distanciaStatus').textContent = '🔍 Localizando loja...';
+  var q = encodeURIComponent(LOJAS[key].endereco);
+  fetch('https://nominatim.openstreetmap.org/search?format=json&limit=1&countrycodes=br&q='+q)
+    .then(function(r){ return r.json(); })
+    .then(function(res){
+      if(res && res.length){
+        _cacheLoja[key] = {lat:parseFloat(res[0].lat), lon:parseFloat(res[0].lon)};
+      } else {
+        // Fallback: tenta só o nome da loja + cidade
+        return fetch('https://nominatim.openstreetmap.org/search?format=json&limit=1&countrycodes=br&q='+encodeURIComponent(LOJAS[key].nome+', Petrópolis, Rio de Janeiro, Brasil'))
+          .then(function(r2){ return r2.json(); })
+          .then(function(res2){
+            _cacheLoja[key] = (res2 && res2.length) ? {lat:parseFloat(res2[0].lat), lon:parseFloat(res2[0].lon)} : null;
+          });
+      }
+    })
+    .catch(function(){ _cacheLoja[key] = null; })
+    .finally(function(){
+      _lojaCoords = _cacheLoja[key];
+      if(!_lojaCoords){
+        document.getElementById('distanciaStatus').textContent = '⚠️ Loja não encontrada no mapa';
+        return;
+      }
+      document.getElementById('distanciaStatus').textContent = '🔍 Calculando distâncias...';
+      setTimeout(function(){ geocodarTodos(); }, 1100);
+    });
+}
+
+function onSliderDistancia(val){
+  val = parseInt(val);
+  document.getElementById('distanciaVal').textContent = val===0 ? 'Sem limite' : val+' km';
+  _distanciaAtiva = val > 0;
+  aplicarFiltros();
+}
+
+function enderecoChave(c){
+  // Chave por rua+numero (mais específico) ou bairro+cidade como fallback
+  var rua = (c.rua||'').trim();
+  var num = (c.numero||'').trim();
+  if(rua && num) return 'end|'+rua.toLowerCase()+'|'+num.toLowerCase();
+  var cep = (c.cep||'').replace(/\D/g,'').trim();
+  if(cep.length === 8) return 'cep|'+cep;
+  var p = [];
+  if(c.bairro) p.push(c.bairro.trim());
+  if(c.cidade) p.push((c.cidade||'Petrópolis').trim());
+  return p.join('|');
+}
+
+function geocodarTodos(){
+  // Coleta chaves únicas pendentes
+  var porChave = {};
+  _todos.forEach(function(c){
+    if(c._distanciaKm !== undefined) return;
+    var ch = enderecoChave(c);
+    if(!ch) return;
+    if(!porChave[ch]) porChave[ch] = [];
+    porChave[ch].push(c);
+  });
+
+  var chavesNom = [];
+  Object.keys(porChave).forEach(function(k){
+    if(_cacheGeo.hasOwnProperty(k)) return;
+    chavesNom.push(k);
+  });
+
+  if(chavesNom.length === 0){ aplicarDistancias(); return; }
+
+  var total = chavesNom.length, feitos = 0;
+
+  function tick(){
+    feitos++;
+    document.getElementById('distanciaStatus').textContent =
+      '🔍 Geocodando '+feitos+'/'+total+'...';
+    if(feitos === total) aplicarDistancias();
+  }
+
+  var fila = chavesNom.map(function(ch){
+    var c0 = _todos.find(function(c){ return enderecoChave(c)===ch; }) || {};
+    return {ch:ch, c0:c0};
+  });
+
+  (function processarFila(i){
+    if(i >= fila.length){ aplicarDistancias(); return; }
+    var item = fila[i];
+    var cep = (item.c0.cep||'').replace(/\D/g,'').trim();
+
+    // Monta query: rua+numero+cidade → CEP → bairro+cidade (em ordem de precisão)
+    var rua = (item.c0.rua||'').trim();
+    var num = (item.c0.numero||'').trim();
+    var bairro = (item.c0.bairro||'').trim();
+    var cidade = (item.c0.cidade||'Petrópolis').trim();
+    var cep = (item.c0.cep||'').replace(/\D/g,'').trim();
+    var query;
+    if(rua && num){
+      query = [rua, num, cidade, 'Rio de Janeiro', 'Brasil'].join(', ');
+      document.getElementById('distanciaStatus').textContent =
+        '🔍 Endereço '+(i+1)+'/'+fila.length+': '+rua+', '+num+'...';
+    } else if(cep.length === 8){
+      query = [cep.slice(0,5)+'-'+cep.slice(5), cidade, 'Rio de Janeiro', 'Brasil'].join(', ');
+      document.getElementById('distanciaStatus').textContent =
+        '🔍 CEP '+(i+1)+'/'+fila.length+': '+cep+'...';
+    } else {
+      query = [bairro||cidade, cidade, 'Rio de Janeiro', 'Brasil'].join(', ');
+      document.getElementById('distanciaStatus').textContent =
+        '🔍 Bairro '+(i+1)+'/'+fila.length+': '+bairro+'...';
+    }
+    var url = 'https://nominatim.openstreetmap.org/search?format=json&limit=1&countrycodes=br&q='+encodeURIComponent(query);
+
+    fetch(url)
+      .then(function(r){ return r.json(); })
+      .then(function(res){
+        _cacheGeo[item.ch] = (res && res.length)
+          ? {lat:parseFloat(res[0].lat), lon:parseFloat(res[0].lon)} : null;
+      })
+      .catch(function(){ _cacheGeo[item.ch] = null; })
+      .finally(function(){
+        tick();
+        setTimeout(function(){ processarFila(i+1); }, 1100);
+      });
+  })(0);
+}
+
+function aplicarDistancias(){
+  if(!_lojaCoords){ aplicarFiltros(); return; }
+  var semCoords = 0;
+  _todos.forEach(function(c){
+    var ch = enderecoChave(c);
+    var coords = _cacheGeo[ch];
+    if(coords){
+      c._distanciaKm = haversine(_lojaCoords.lat, _lojaCoords.lon, coords.lat, coords.lon);
+      c._geocoordLat = coords.lat;
+      c._geocoordLon = coords.lon;
+    } else {
+      semCoords++;
+    }
+  });
+  var msg = '✅ Distâncias calculadas';
+  if(semCoords) msg += ' ('+semCoords+' sem endereço)';
+  document.getElementById('distanciaStatus').textContent = msg;
+  aplicarFiltros();
+}
+
+function haversine(lat1,lon1,lat2,lon2){
+  var R=6371, dLat=(lat2-lat1)*Math.PI/180, dLon=(lon2-lon1)*Math.PI/180;
+  var a=Math.sin(dLat/2)*Math.sin(dLat/2)+Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)*Math.sin(dLon/2);
+  var d = 2*R*Math.asin(Math.sqrt(a));
+  return Math.round(d*10)/10; // 1 casa decimal
+}
+</script>
+</body>
+</html>
