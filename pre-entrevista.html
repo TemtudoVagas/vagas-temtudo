@@ -446,13 +446,23 @@ button.secundario:hover{background:rgba(0,0,0,.08)}
   <section class="envio">
     <h2>Antes de enviar</h2>
     <p>Confira se o celular e os telefones dos empregos estão certos. É por aí que a gente entra em contato.</p>
+    <p style="font-size:.88rem;color:#5a4500;background:rgba(0,0,0,0.07);border-radius:8px;padding:10px 14px;margin:10px 0 4px;">
+      Seus dados serão tratados conforme a LGPD, de acordo com os padrões nela estabelecidos de armazenamento, segurança e descarte.
+    </p>
+    <p style="font-size:.88rem;color:#5a4500;background:rgba(0,0,0,0.07);border-radius:8px;padding:10px 14px;margin:4px 0 14px;">
+      As informações fornecidas serão guardadas apenas para seleção futura num prazo máximo de 90 dias. Após o término do período serão devidamente descartadas em segurança.
+    </p>
     <label class="check">
       <input type="checkbox" id="veracidade" name="veracidade">
       <span>Confirmo que as informações são verdadeiras</span>
     </label>
     <label class="check">
       <input type="checkbox" id="lgpd" name="lgpd">
-      <span>Autorizo o uso desses dados para este processo seletivo, conforme a Lei Geral de Proteção de Dados</span>
+      <span>Aceito os termos de acordo com a LGPD</span>
+    </label>
+    <label class="check">
+      <input type="checkbox" id="armazenamento" name="armazenamento">
+      <span>Desejo que minha ficha e currículo sejam armazenados para próxima seleção dentro do prazo estabelecido</span>
     </label>
     <button type="button" id="enviar">Enviar meu cadastro</button>
     <div class="aviso" id="aviso"></div>
@@ -677,8 +687,9 @@ document.getElementById('enviar').onclick = function(){
   /* 2) checkboxes obrigatórios */
   var ver = document.getElementById('veracidade');
   var lgp = document.getElementById('lgpd');
-  if(!ver.checked || !lgp.checked){
-    aviso.innerHTML = 'Marque as duas confirmações acima para enviar.';
+  var arm = document.getElementById('armazenamento');
+  if(!ver.checked || !lgp.checked || !arm.checked){
+    aviso.innerHTML = 'Marque as três confirmações acima para enviar.';
     aviso.style.display = 'block';
     aviso.style.background = '#fff3cd';
     aviso.style.color = '#333';
